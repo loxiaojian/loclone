@@ -3,11 +3,11 @@
 #include <stdarg.h>
 #include <DELAY.h>
 #include "serial.h"
+#include "OLED.h"
 
-char Serial_RxPacket[100];				//"@MSG\r\n"
+#define serbuff 1024
+char Serial_RxPacket[serbuff];				//"@MSG\r\n"
 uint8_t Serial_RxFlag = 0;
-
-
 
 
 void Serial_Init(void)
@@ -108,6 +108,8 @@ void Serial_Printf(char *format, ...)
 	Serial_SendString(String);
 }
 
+//wifi
+/*********************************************************************************************/
 char* command[] = {"AT+CWMODE=1\r\n",
 	"AT+CWJAP=\"lo\",\"66666666\"\r\n",
 "AT+MQTTUSERCFG=0,1,\"123456|securemode=2\\,signmethod=hmacsha1\\,timestamp=1693640945952|\",\"eps8266&iu51wddAmdO\",\"56CF879E39EDC3B5513684524B3D43D5BFAA299A\",0,0,\"\"\r\n",
@@ -115,11 +117,17 @@ char* command[] = {"AT+CWMODE=1\r\n",
 "AT+MQTTSUB=0,\"/sys/iu51wddAmdO/eps8266/thing/service/property/set\",0\r\n"
 };
 
+ uint8_t Wifiintflag = 0;
+
+
+#define msgbuffer 256
+
+unsigned char msg[msgbuffer];
 
 void WifiInit(){
 
 	Delay_ms(1000);
-	for(char i = 0 ; i<5 ; i++){
+	for(unsigned char i = 0 ; i<5 ; i++){
 		
 		while(Serial_RxFlag == 0){
 		printf("%s",command[i]);
@@ -128,21 +136,32 @@ void WifiInit(){
 		Serial_RxFlag = 0;	
   }
 	OLED_ShowString(2, 1, "WIFI OK");
+	Wifiintflag = 1;
+  
 }
 
 
-void USART1_IRQHandler(void)
-{
+void Publish(unsigned char ledstate,unsigned char currert){
 
-	static uint8_t Rxflag = 0;
-	static uint8_t pRxPacket = 0;
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
-	{
-		uint8_t RxData = USART_ReceiveData(USART1);
-							
-			if (RxData == 'O')
+
+	sprintf((char *)msg,"AT+MQTTPUB=0,\""PUB_TOPIC"\",\""JSON_FORMAT"\",0,0\r\n",ledstate,currert);
+	printf("%s",msg);
+	
+}
+
+void Subscribe(unsigned char ledstate,unsigned char currert){
+
+
+}
+
+ uint8_t Rxflag = 0;
+ int pRxPacket = 0;
+
+void wifinitconditon(unsigned char RxData){
+	
+				if (RxData == 'O')
 			{				
-				pRxPacket = 0;	
+//				pRxPacket = 0;	
 				Rxflag = 1;
 			}
 					
@@ -158,10 +177,26 @@ void USART1_IRQHandler(void)
 			}		
 				
 
+}
+
+
+void USART1_IRQHandler(void)
+{
+
+
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+	{
+		uint8_t RxData = USART_ReceiveData(USART1);
+		
+	if(Wifiintflag == 0)
+		wifinitconditon(RxData);
+	else
+	{		
 		Serial_RxPacket[pRxPacket] = RxData;
-		pRxPacket ++;
-		if(pRxPacket>=99) pRxPacket = 0;
-	
+		pRxPacket ++; 
+		if(pRxPacket >= serbuff ) pRxPacket = 0;
+	}
+		
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
 	}	
 	

@@ -32,3 +32,4 @@
 .\objects\serial.o: C:\Program Files\keil5\ARM\ARMCC\Bin\..\include\stdarg.h
 .\objects\serial.o: .\System\DELAY.h
 .\objects\serial.o: Hardware\serial.h
+.\objects\serial.o: Hardware\OLED.h

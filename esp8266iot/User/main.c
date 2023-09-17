@@ -15,15 +15,13 @@ int main(void)
 	Key_Init();
 	OLED_ShowString(1, 1, "WIFI CONNECT");
 	WifiInit();
-	unsigned char msg[256];
+	
 	unsigned char num = 0;
 	while (1)
 	{
-	
+		Publish(num++,20);
 		Delay_ms(1000);
-		sprintf((char *)msg,"AT+MQTTPUB=0,\""PUB_TOPIC"\",\""JSON_FORMAT"\",0,0\r\n",num,2);
-		printf("%s",msg);
-		OLED_ShowNum(3,0,num++,8);
+		OLED_ShowNum(3,0,num,8);
 		if(num>=255) num = 0;
 	}
 }

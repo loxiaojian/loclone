@@ -12,7 +12,10 @@ void Serial_SendArray(uint8_t *Array, uint16_t Length);
 void Serial_SendString(char *String);
 void Serial_SendNumber(uint32_t Number, uint8_t Length);
 void Serial_Printf(char *format, ...);
-void WifiInit();
+void WifiInit(void);
+void Publish(unsigned char ledstate,unsigned char currert);
+void Subscribe(unsigned char ledstate,unsigned char currert);
+
 
 #define sub_topic "/sys/iu51wddAmdO/eps8266/thing/service/property/set"
 #define PUB_TOPIC "/sys/iu51wddAmdO/eps8266/thing/event/property/post"
